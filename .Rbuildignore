@@ -1,3 +1,4 @@
+^README\.Rmd$
 ^inst/extdata/anele-ccc\.csv$
 ^LICENSE\.md$
 ^.*\.Rproj$
