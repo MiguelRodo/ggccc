@@ -1,96 +1,125 @@
 #' Plot of raw data with line of best fit and CCC
 #'
-#' \code{plotCCC} calculates the CCC for a
-#' given combination of cd and cytokine combination,
-#' and then plots over the
-#' @param cyt character. If one of "G", "2" and "T". The
-#' corresponding cytokine is summed over across all
-#' cytokine combinations. If a full cytokine combination, then
-#' the values of that cytokine combination are used.
-#' @param cd 4 or 8. The cd of the data.
-#' @param data dataframe. A dataframe with columns ptid, cd,
-#' stim, type, proc, stain and resp.
-#'
-#' @section Assumptions:
-#'
-#' Note that this plot makes the following coding assumptions.
-#' - SATVI is the site labelled "0" and SUN is the site labelled "1".
-#'
+#' @param data dataframe.
+#' @param x,y numeric vectors or characters. If numeric vectors, then they specify the x- and y-
+#' plotting variables, respectively. If characters, then they are taken to specify
+#' the columns containing the x- and y-variables in \code{data}. If not provided,
+#' then the x- and y-plotting variables are taken as the first two columsns of \code{data}.
+#' @param hor 'left' or 'right'. Specifies horizontal position of summary statistic table.
+#' Default is \code{'left'}.
+#' @param ver 'top' or 'bottom'. Specifies vertical position of summary statistic table.
+#' Default is \code{'top'}.
+#' @return A \code{ggplot2} plot with the following elements:
+#' - raw data plotted
+#' - y ~ x linear line of best fit (estimate + confidence bands)
+#' - table of relevant summary statistics.
+#' @details
+#' The following summary statistics are
+#' printed on the plot:
+#' - Concordance CC: est (95% CI)
+#' - Pearon's CC: est (95% CI)
+#' - Intercept: est (95% CI)
+#' - Slope: est (95% CI)
 #' @export
-plotCCC = function( cyt, cd, data ){
+gg_ccc = function( data, x, y,
+                   hor = 'left',
+                   ver = 'top'){
 
-  # force cyt to be a character vector
-  cyt = as.character( cyt )
-
-  # check if you need to sum over cyt
-  if( str_length( cyt ) == 1 ){
-    currCytPos = cytPosVec[ cyt ] + 1
-    cytTbl = data %>%
-      mutate( cytInd = Vectorize(ifelse)(
-        str_sub( type, currCytPos, currCytPos ) == "+",
-        TRUE, FALSE ) ) %>%
-      group_by( ptid, stim, proc, cd ) %>%
-      summarise( resp = sum( resp[ cytInd ] ) ) %>%
-      ungroup()
-
-    plotTitle = str_c("CCC: CD", cd, " ", cyt, "+", ", ", labLabVec[data$stain[1]], " Staining" )
-  } else{ # if a cytcombo must be filtered for
-    cytSubVec = data$type ==  cyt
-    cytTbl = data[cytSubVec,]
-    plotTitle = str_c("CCC: CD", cd, " ", cyt, ", ", labLabVec[data$stain[1]], " Staining"  )
+  # get inputs
+  if( missing( x ) | missing( y ) ){
+    if( missing( data ) | ncol( data ) < 2 |
+        !( is.data.frame( data ) |
+           is.matrix( data ) ) ){
+      stop( "If at least one of x and y are not supplied as vectors, then data must be a dataframe or matrix with at least two columns.")
+    }
+    x <- data[,1,drop=TRUE]
+    y <- data[,2,drop=TRUE]
+    lab_x <- "x"
+    lab_y <- "y"
+    message( "x and y not specified, and so taken as first and second column of data, respectively.")
+  } else if( is.character( x ) & is.character( y ) ){
+    if( x[1] %in% names( data ) ){
+      lab_x <- x[1]
+      x <- data[,x,drop=TRUE]
+    } else{
+      stop( "x not a column name in data, despite being a character vector of length 1.")
+    }
+    if( y[1] %in% names( data ) ){
+      lab_y <- y[1]
+      y <- data[,y,drop=TRUE]
+    } else{
+      stop( "y not a column name in data, despite being a character.")
+    }
+  } else{
+    lab_x <- "x"
+    lab_y <- "y"
   }
 
-  # cd sub
-  cdSubVec = cytTbl$cd == cd
+  if( !is.numeric( x ) | !is.numeric( y ) ){
+    stop( "x and y were not ultimately set to numeric vectors, either through finding numeric columns in data or through both being provided as numeric vectors initially.")
+  }
 
-  # cccTbl
-  workingTbl = cytTbl %>%
-    mutate( ptid.stim = str_c( ptid, ".", stim ) ) %>%
-    filter( cdSubVec ) %>%
-    arrange( ptid.stim, proc )
+  if( length( x ) != length( y ) ) stop( "Lengths of x- and y-variables must match." )
 
-  # plotTbl
-  plotTbl = workingTbl %>%
-    spread( key = proc, value = resp ) %>%
-    rename( sun = `0`, satvi = `1` ) %>%
-    mutate( ptid.stim = str_c( ptid, ".", stim ) ) %>%
-    arrange( ptid.stim )
+  fit_tbl <- data.frame( ry = c( x, y ),
+                         rmet = c( rep( lab_x, length(x) ),
+                                   rep( lab_y, length( y ) ) ) )
 
-  # ccc estimation
-  cccEst = cccUst( workingTbl, "resp", rmet = "proc" )
+  cccUst_obj = suppressWarnings( cccUst( dataset = fit_tbl,
+                                         ry = "ry",
+                                         rmet = "rmet",
+                                         cl = 0.95 ) )
+  ccc_vec = round( cccUst_obj, 2 )
 
-  # line fit
-  mod1 = lm( satvi ~ sun, data = plotTbl )
-  estVec = coef( mod1 )
-  sdVec = coef( summary(mod1))[,2]
-  bound = qt( 0.025, nrow( data ) - 2, lower.tail = FALSE )
-  intVec = c( estVec[1], estVec[1] - bound * sdVec[1], estVec[1] + bound * sdVec[1] ) %>% round(2)
-  slopeVec = c( estVec[2], estVec[2] - bound * sdVec[2], estVec[2] + bound * sdVec[2] ) %>% round(2)
-  pointMax = max( plotTbl$satvi, plotTbl$sun )
-  xFitLine = c( 0, pointMax )
-  yFitLine = c( 0, estVec[1] + estVec[2] * pointMax)
+  raw_data_tbl <- data.frame( x = x, y = y )
 
+  mod1 <- lm( y ~ x )
+  est_vec <- coef( mod1 )
+  sd_vec <- coef( summary(mod1))[,2]
+  bound <- qt( 0.025, nrow( data ) - 2, lower.tail = FALSE )
+  int_vec <- c( est_vec[1], est_vec[1] - bound * sd_vec[1], est_vec[1] + bound * sd_vec[1] )
+  int_vec <- round( int_vec, 2 )
+  slope_vec <- c( est_vec[2], est_vec[2] - bound * sd_vec[2], est_vec[2] + bound * sd_vec[2] )
+  slope_vec <- round( slope_vec, 2 )
 
-  # perfect line
-  perfUpperPoint = max( plotTbl$satvi, plotTbl$sun )
+  ccc_vec <- round( cccUst_obj, 2 )
+
+  pcc_vec <- c( cor(x,y), cor.test(x,y,conf.level=0.95)$conf.int )
+  pcc_vec <- round( pcc_vec, 2 )
+  summ_stat_vec = c( paste0( "Concordance CC:  ", ccc_vec[1], "  (", ccc_vec[2], ";", ccc_vec[3], ")" ),
+                     paste0( "Pearson's CC: ", pcc_vec[1], "  (", pcc_vec[2], ";", pcc_vec[3], ")" ),
+                     paste0( "Intercept:  ", int_vec[1], "  (", int_vec[2], ";", int_vec[3], ")" ),
+                     paste0( "Slope:  ", slope_vec[1], "  (", slope_vec[2], ";", slope_vec[3], ")" ) )
+
+  point_max = max( x, y )
+  range_x <- range( x )
+  range_y <- range( y )
+  if( hor == "left" ){
+    summ_stat_x <- range_x[1] + 0.1 * ( range_x[2] - range_x[1] )
+    summ_stat_x_vec <- rep( summ_stat_x, length( summ_stat_vec ) )
+  } else if( hor == "right" ){
+    summ_stat_x <- range_x[2] - 0.3 * ( range_x[2] - range_x[1] )
+    summ_stat_x_vec <- rep( summ_stat_x, length( summ_stat_vec ) )
+  } else{ stop( "hor must be one of 'left' or 'right'.")}
+  if( ver == "top" ){
+    summ_stat_y_bottom_perc <- 100 - 2.5 * ( length(summ_stat_vec ) - 1)
+    summ_stat_y_vec <- range_y[2] * seq( summ_stat_y_bottom_perc,
+                                          100, by = 2.5 ) / 100
+    summ_stat_y_vec <- rev( summ_stat_y_vec )
+  } else if( ver == "bot" ){
+    summ_stat_y_top_perc <- 2.5 + 2.5 * ( length(summ_stat_vec ) - 1 )
+    summ_stat_y_vec <- range_y[1] * seq( 5, summ_stat_y_top_perc,
+                                         by = 2.5 ) / 100
+  } else{ stop( "ver must be one of 'top' or 'bot'.")}
 
   # sum stat points
-  yVec = max( yFitLine[2], perfUpperPoint ) * rev( seq(8.5,9.5,by=0.5) ) / 10
-  xVec = rep( 0.22 * xFitLine[2], 3 )
-  cccVec = cccEst %>% round(2)
-  labVec = c( str_c( "CCC:  ", cccVec[1], "  (", cccVec[2], ";", cccVec[3], ")" ),
-    str_c( "Int:  ", intVec[1], "  (", intVec[2], ";", intVec[3], ")" ),
-    str_c( "Slope:  ", slopeVec[1], "  (", slopeVec[2], ";", slopeVec[3], ")" ) )
 
-  # plot
-  ggplot( plotTbl, aes( x = sun, y = satvi ) ) +
+  p <- ggplot( raw_data_tbl, aes( x = x, y = y ) ) +
     geom_point() +
-    # geom_smooth( method = 'loess', e = FALSE ) +
-    annotate( geom = 'line', x = c( 0, perfUpperPoint ),
-      y = c( 0, perfUpperPoint ) ) +
-    labs( x = str_c( labLabVec[1], " Processing"), y = str_c( labLabVec[2], " Processing"), title = plotTitle ) +
-    # annotate( geom = 'line', x = xFitLine, y = yFitLine, linetype = 2 ) +
-    annotate( geom = 'text', x = xVec, y = yVec, label = labVec ) +
-    geom_smooth( method = "lm" )
-
+    geom_smooth( method = "lm" ) +
+    geom_abline( intercept = 0, slope = 1 ) +
+    labs( x = lab_x, y = lab_y ) +
+    annotate( geom = 'text', x = summ_stat_x_vec,
+              y = summ_stat_y_vec, label = summ_stat_vec,
+              size = 5 )
 }

@@ -1,4 +1,4 @@
-Package: plotccc
+Package: ggccc
 Type: Package
 Title: Convenient plotting function for CCC
 Version: 0.1.0
@@ -13,5 +13,10 @@ Encoding: UTF-8
 LazyData: true
 Suggests: 
     knitr,
-    rmarkdown
+    rmarkdown,
+    testthat
 VignetteBuilder: knitr
+Imports: 
+    ggplot2,
+    cccrm
+RoxygenNote: 6.1.1
