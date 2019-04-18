@@ -5,6 +5,7 @@
 #' plotting variables, respectively. If characters, then they are taken to specify
 #' the columns containing the x- and y-variables in \code{data}. If not provided,
 #' then the x- and y-plotting variables are taken as the first two columsns of \code{data}.
+#' \code{x} and \code{y} must have the same type, and anything else generates an error.
 #' @param hor 'left' or 'right'. Specifies horizontal position of summary statistic table.
 #' Default is \code{'left'}.
 #' @param ver 'top' or 'bottom'. Specifies vertical position of summary statistic table.
@@ -20,6 +21,9 @@
 #' - Pearon's CC: est (95% CI)
 #' - Intercept: est (95% CI)
 #' - Slope: est (95% CI)
+#' @examples
+#' data( test_tbl )
+#' gg_ccc( test_tbl )
 #' @export
 gg_ccc = function( data, x, y,
                    hor = 'left',
