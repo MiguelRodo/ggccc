@@ -1,5 +1,5 @@
 ---
-title: "How to Use PlotCCC Function"
+title: "How to Use gg_ccc Function"
 author: "Miguel Julio Rodo"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
@@ -9,4 +9,26 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+## Introduction
 
+This function is very simple to use. 
+
+### Set-up
+
+#### Package
+```{r load-pkg, message = FALSE}
+library(ggccc)
+```
+
+#### Data
+```{r load-data}
+data( test_tbl )
+```
+
+## Application
+
+```{r plot-simple, fig.height = 6, fig.width = 6}
+gg_ccc( test_tbl, x = "CD4", y = "CD8", table_font_size = 3, 
+        shift_x = 10, shift_y = 5 ) +
+  cowplot::theme_cowplot()
+```
