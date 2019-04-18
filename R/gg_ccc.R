@@ -118,7 +118,7 @@ gg_ccc = function( data, x, y,
 
   # sum stat points
 
-  p <- ggplot( raw_data_tbl, aes( x = x, y = y ) ) +
+  ggplot( raw_data_tbl, aes( x = x, y = y ) ) +
     geom_point() +
     geom_smooth( method = "lm" ) +
     geom_abline( intercept = 0, slope = 1 ) +
