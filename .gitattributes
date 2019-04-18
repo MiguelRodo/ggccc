@@ -1,0 +1,22 @@
+* text=auto
+*.Rmd text
+*.R text
+*.rda text
+.gitattributes text
+.gitignore text
+*.yml text
+.Rbuildignore text
+DATADIGEST text
+*.md text
+Makefile text
+NAMESPACE text
+DESCRIPTION text
+*.Rproj text
+*.Rhistory text
+
+*.png binary
+*.rda binary
+*.RData binary
+*.pdf -text
+
+*.html -diff -text
