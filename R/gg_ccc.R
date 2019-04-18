@@ -10,6 +10,13 @@
 #' Default is \code{'left'}.
 #' @param ver 'top' or 'bottom'. Specifies vertical position of summary statistic table.
 #' Default is \code{'top'}.
+#' @param shift_x numeric. Percentage of x-axis range to shift summary statistic table.
+#' If positive, then the table is shifted to the right. For example, \code{shift_x=50}
+#' means that the table will be shifted halfway across the width of the x-axis range.
+#' Default is zero.
+#' @param shift_y numeric. Analogous to \code{shift_x}, but for the y-axis. Positive
+#' values move upwards. Default is 0.
+#' @param table_font_size numeric. Size of font for summary statistic table.
 #' @return A \code{ggplot2} plot with the following elements:
 #' - raw data plotted
 #' - y ~ x linear line of best fit (estimate + confidence bands)
@@ -27,7 +34,10 @@
 #' @export
 gg_ccc = function( data, x, y,
                    hor = 'left',
-                   ver = 'top'){
+                   ver = 'top',
+                   shift_x = 0,
+                   shift_y = 0,
+                   table_font_size = 5){
 
   # get inputs
   if( missing( x ) | missing( y ) ){
@@ -97,23 +107,23 @@ gg_ccc = function( data, x, y,
 
   point_max = max( x, y )
   range_x <- range( x )
+  range_x_length <- range_x[2] - range_x[1]
   range_y <- range( y )
+  range_y_length <- range_y[2] - range_y[1]
   if( hor == "left" ){
     summ_stat_x <- range_x[1] + 0.1 * ( range_x[2] - range_x[1] )
-    summ_stat_x_vec <- rep( summ_stat_x, length( summ_stat_vec ) )
+    summ_stat_x_vec <- rep( summ_stat_x, length( summ_stat_vec ) ) +  shift_x / 100 * range_x_length
   } else if( hor == "right" ){
     summ_stat_x <- range_x[2] - 0.3 * ( range_x[2] - range_x[1] )
-    summ_stat_x_vec <- rep( summ_stat_x, length( summ_stat_vec ) )
+    summ_stat_x_vec <- rep( summ_stat_x, length( summ_stat_vec ) ) +  shift_x / 100 * range_x_length
   } else{ stop( "hor must be one of 'left' or 'right'.")}
   if( ver == "top" ){
     summ_stat_y_bottom_perc <- 100 - 2.5 * ( length(summ_stat_vec ) - 1)
-    summ_stat_y_vec <- range_y[2] * seq( summ_stat_y_bottom_perc,
-                                          100, by = 2.5 ) / 100
+    summ_stat_y_vec <- range_y[2] * seq( summ_stat_y_bottom_perc, 100, by = 2.5 ) / 100 + shift_y / 100 * range_y_length
     summ_stat_y_vec <- rev( summ_stat_y_vec )
   } else if( ver == "bot" ){
     summ_stat_y_top_perc <- 2.5 + 2.5 * ( length(summ_stat_vec ) - 1 )
-    summ_stat_y_vec <- range_y[1] * seq( 5, summ_stat_y_top_perc,
-                                         by = 2.5 ) / 100
+    summ_stat_y_vec <- range_y[1] * seq( 5, summ_stat_y_top_perc, by = 2.5 ) / 100 + shift_y / 100 * range_y_length
   } else{ stop( "ver must be one of 'top' or 'bot'.")}
 
   # sum stat points
@@ -125,5 +135,5 @@ gg_ccc = function( data, x, y,
     labs( x = lab_x, y = lab_y ) +
     annotate( geom = 'text', x = summ_stat_x_vec,
               y = summ_stat_y_vec, label = summ_stat_vec,
-              size = 5 )
+              size = table_font_size )
 }
