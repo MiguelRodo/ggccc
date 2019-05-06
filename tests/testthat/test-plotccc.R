@@ -14,9 +14,9 @@ test_that( "default plot_ccc runs", {
 } )
 
 test_that( "axis re-labelling works", {
-  p <- try(  gg_ccc( data = test_tbl, x = "CD4", y = "CD8" ) )
-  expect_identical( p$labels$x, "CD4" )
-  expect_identical( p$labels$y, "CD8" )
+  p <- try(  gg_ccc( data = test_tbl, x = "Measurement 1", y = "Measurement 2" ) )
+  expect_identical( p$labels$x, "Measurement 1" )
+  expect_identical( p$labels$y, "Measurement 2" )
 })
 
 test_that( "incorrect inputs generate errors", {
