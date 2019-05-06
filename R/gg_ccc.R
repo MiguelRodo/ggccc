@@ -17,6 +17,8 @@
 #' @param shift_y numeric. Analogous to \code{shift_x}, but for the y-axis. Positive
 #' values move upwards. Default is 0.
 #' @param table_font_size numeric. Size of font for summary statistic table.
+#' @param table_font_gap numeric. Percentage of range of y-axis that rows in table are
+#' separated by.
 #' @return A \code{ggplot2} plot with the following elements:
 #' - raw data plotted
 #' - y ~ x linear line of best fit (estimate + confidence bands)
@@ -37,7 +39,8 @@ gg_ccc = function( data, x, y,
                    ver = 'top',
                    shift_x = 0,
                    shift_y = 0,
-                   table_font_size = 5){
+                   table_font_size = 5,
+                   table_font_gap = 2.5 ){
 
   # get inputs
   if( missing( x ) | missing( y ) ){
@@ -83,7 +86,8 @@ gg_ccc = function( data, x, y,
                                          ry = "ry",
                                          rmet = "rmet",
                                          cl = 0.95 ) )
-  ccc_vec = round( cccUst_obj, 2 )
+  specify_decimal <- function(x, k = 2) trimws(format(round(x, k), nsmall=k))
+  ccc_vec = specify_decimal( cccUst_obj )
 
   raw_data_tbl <- data.frame( x = x, y = y )
 
@@ -92,20 +96,21 @@ gg_ccc = function( data, x, y,
   sd_vec <- coef( summary(mod1))[,2]
   bound <- qt( 0.025, nrow( data ) - 2, lower.tail = FALSE )
   int_vec <- c( est_vec[1], est_vec[1] - bound * sd_vec[1], est_vec[1] + bound * sd_vec[1] )
-  int_vec <- round( int_vec, 2 )
+  int_vec <- specify_decimal( int_vec )
   slope_vec <- c( est_vec[2], est_vec[2] - bound * sd_vec[2], est_vec[2] + bound * sd_vec[2] )
-  slope_vec <- round( slope_vec, 2 )
-
-  ccc_vec <- round( cccUst_obj, 2 )
+  slope_vec <- specify_decimal( slope_vec )
+  format(round(x, 2), nsmall = 2)
+  ccc_vec <- signif( cccUst_obj, 2 )
 
   pcc_vec <- c( cor(x,y), cor.test(x,y,conf.level=0.95)$conf.int )
-  pcc_vec <- round( pcc_vec, 2 )
+  pcc_vec <- specify_decimal( pcc_vec, 2 )
   summ_stat_vec = c( paste0( "Concordance CC:  ", ccc_vec[1], "  (", ccc_vec[2], ";", ccc_vec[3], ")" ),
                      paste0( "Pearson's CC: ", pcc_vec[1], "  (", pcc_vec[2], ";", pcc_vec[3], ")" ),
                      paste0( "Intercept:  ", int_vec[1], "  (", int_vec[2], ";", int_vec[3], ")" ),
                      paste0( "Slope:  ", slope_vec[1], "  (", slope_vec[2], ";", slope_vec[3], ")" ) )
 
-  point_max = max( x, y )
+
+  point_max <- max( x, y )
   range_x <- range( x )
   range_x_length <- range_x[2] - range_x[1]
   range_y <- range( y )
@@ -118,8 +123,8 @@ gg_ccc = function( data, x, y,
     summ_stat_x_vec <- rep( summ_stat_x, length( summ_stat_vec ) ) +  shift_x / 100 * range_x_length
   } else{ stop( "hor must be one of 'left' or 'right'.")}
   if( ver == "top" ){
-    summ_stat_y_bottom_perc <- 100 - 2.5 * ( length(summ_stat_vec ) - 1)
-    summ_stat_y_vec <- range_y[2] * seq( summ_stat_y_bottom_perc, 100, by = 2.5 ) / 100 + shift_y / 100 * range_y_length
+    summ_stat_y_bottom_perc <- 100 - table_font_gap * ( length(summ_stat_vec ) - 1)
+    summ_stat_y_vec <- range_y[2] * seq( summ_stat_y_bottom_perc, 100, by = table_font_gap ) / 100 + shift_y / 100 * range_y_length
     summ_stat_y_vec <- rev( summ_stat_y_vec )
   } else if( ver == "bot" ){
     summ_stat_y_top_perc <- 2.5 + 2.5 * ( length(summ_stat_vec ) - 1 )

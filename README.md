@@ -27,8 +27,10 @@ This is an example of the output from `gg_ccc`.
 ``` r
 library(ggccc)
 data( test_tbl )
-gg_ccc( test_tbl, x = "CD4", y = "CD8", table_font_size = 2, 
-        shift_x = 20, shift_y = 4 ) +
+gg_ccc( test_tbl, x = "CD4", y = "CD8",  
+        shift_x = 20, shift_y = 4, 
+        table_font_size = 5,
+        table_font_gap = 3.2 ) +
   cowplot::theme_cowplot() +
   ggplot2::coord_equal()
 ```
