@@ -37,9 +37,12 @@ separated by.}
 }
 \value{
 A \code{ggplot2} plot with the following elements:
-- raw data plotted
-- y ~ x linear line of best fit (estimate + confidence bands)
-- table of relevant summary statistics.
+\itemize{
+  \item raw data plotted
+  \item black 45 degree line
+  \item blue linear line of best fit (estimate + confidence bands)
+  \item table of relevant summary statistics.
+}
 }
 \description{
 Plot of raw data with line of best fit and CCC
@@ -47,10 +50,12 @@ Plot of raw data with line of best fit and CCC
 \details{
 The following summary statistics are
 printed on the plot:
-- Concordance CC: est (95% CI)
-- Pearon's CC: est (95% CI)
-- Intercept: est (95% CI)
-- Slope: est (95% CI)
+\itemize{
+  \item Concordance CC: est (95\% CI)
+  \item Pearson's CC: est (95\% CI)
+  \item Intercept: est (95\% CI)
+  \item Slope: est (95\% CI)
+}
 }
 \examples{
 data( test_tbl )
