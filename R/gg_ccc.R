@@ -140,5 +140,6 @@ gg_ccc = function( data, x, y,
     labs( x = lab_x, y = lab_y ) +
     annotate( geom = 'text', x = summ_stat_x_vec,
               y = summ_stat_y_vec, label = summ_stat_vec,
-              size = table_font_size )
+              size = table_font_size ) +
+    coord_equal()
 }

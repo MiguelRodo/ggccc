@@ -31,8 +31,7 @@ gg_ccc( test_tbl, x = "CD4", y = "CD8",
         shift_x = 20, shift_y = 4, 
         table_font_size = 5,
         table_font_gap = 3.2 ) +
-  cowplot::theme_cowplot() +
-  ggplot2::coord_equal()
+  cowplot::theme_cowplot()
 ```
 
 <img src="man/figures/README-plot-simple-1.png" width="100%" />
