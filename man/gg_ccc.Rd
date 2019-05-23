@@ -5,7 +5,8 @@
 \title{Plot of raw data with line of best fit and CCC}
 \usage{
 gg_ccc(data, x, y, hor = "left", ver = "top", shift_x = 0,
-  shift_y = 0, table_font_size = 5, table_font_gap = 2.5)
+  shift_y = 0, table_font_size = 5, table_font_gap = 2.5,
+  fixed_coord = TRUE, equal_axes_length = TRUE)
 }
 \arguments{
 \item{data}{dataframe.}
@@ -34,6 +35,14 @@ values move upwards. Default is 0.}
 
 \item{table_font_gap}{numeric. Percentage of range of y-axis that rows in table are
 separated by.}
+
+\item{fixed_coord}{logical. If \code{TRUE}, then a one-unit increase in the y-axis is
+visually represented the same length as one-unit increase on the x-axis.
+Default is \code{TRUE}.}
+
+\item{equal_axes_length}{logical. If \code{TRUE}, then x- and y-axes have the same
+range. The range is set so that there all data points are displayed (with a slight buffer
+around the upper and lower endpoints). Default is \code{TRUE}.}
 }
 \value{
 A \code{ggplot2} plot with the following elements:

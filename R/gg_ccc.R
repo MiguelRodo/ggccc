@@ -19,6 +19,12 @@
 #' @param table_font_size numeric. Size of font for summary statistic table.
 #' @param table_font_gap numeric. Percentage of range of y-axis that rows in table are
 #' separated by.
+#' @param fixed_coord logical. If \code{TRUE}, then a one-unit increase in the y-axis is
+#' visually represented the same length as one-unit increase on the x-axis.
+#' Default is \code{TRUE}.
+#' @param equal_axes_length logical. If \code{TRUE}, then x- and y-axes have the same
+#' range. The range is set so that there all data points are displayed (with a slight buffer
+#' around the upper and lower endpoints). Default is \code{TRUE}.
 #' @return A \code{ggplot2} plot with the following elements:
 #' \itemize{
 #'   \item raw data plotted
@@ -45,7 +51,9 @@ gg_ccc = function( data, x, y,
                    shift_x = 0,
                    shift_y = 0,
                    table_font_size = 5,
-                   table_font_gap = 2.5 ){
+                   table_font_gap = 2.5,
+                   fixed_coord = TRUE,
+                   equal_axes_length = TRUE ){
 
   # get inputs
   if( missing( x ) | missing( y ) ){
@@ -120,6 +128,13 @@ gg_ccc = function( data, x, y,
   range_x_length <- range_x[2] - range_x[1]
   range_y <- range( y )
   range_y_length <- range_y[2] - range_y[1]
+  if( fixed_coord & equal_axes_length ){
+    xy <- c( x, y )
+    range_x <- range( xy )
+    range_x_length <- range_x_length <- range_x[2] - range_x[1]
+    range_y <- range( x )
+    range_y_length <- range_x_length
+  }
   if( hor == "left" ){
     summ_stat_x <- range_x[1] + 0.1 * ( range_x[2] - range_x[1] )
     summ_stat_x_vec <- rep( summ_stat_x, length( summ_stat_vec ) ) +  shift_x / 100 * range_x_length
@@ -138,13 +153,24 @@ gg_ccc = function( data, x, y,
 
   # sum stat points
 
-  ggplot( raw_data_tbl, aes( x = x, y = y ) ) +
+  p <- ggplot( raw_data_tbl, aes( x = x, y = y ) ) +
     geom_point() +
     geom_smooth( method = "lm" ) +
     geom_abline( intercept = 0, slope = 1 ) +
     labs( x = lab_x, y = lab_y ) +
     annotate( geom = 'text', x = summ_stat_x_vec,
               y = summ_stat_y_vec, label = summ_stat_vec,
-              size = table_font_size ) +
-    coord_equal()
+              size = table_font_size )
+
+  if( !fixed_coord ) return( p )
+  if( !equal_axes_length ) p + fixed_coord()
+
+  data_vec <- c( raw_data_tbl$x, raw_data_tbl$y )
+  upper_lim = max( data_vec )
+  lower_lim = min( data_vec )
+  range <- upper_lim - lower_lim
+  ext_value <- 0.1 * range
+  lim_vec <- c( lower_lim - ext_value, upper_lim + ext_value )
+
+  p + coord_fixed( xlim = lim_vec, ylim = lim_vec, expand = FALSE )
 }
