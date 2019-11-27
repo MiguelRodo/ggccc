@@ -25,6 +25,12 @@
 #' @param equal_axes_length logical. If \code{TRUE}, then x- and y-axes have the same
 #' range. The range is set so that there all data points are displayed (with a slight buffer
 #' around the upper and lower endpoints). Default is \code{TRUE}.
+#' @param ggdraw_y_shift numeric. Provides the increase in the y-coordinate from
+#' one table entry to the next. A reasonable value is 0.03. Default is \code{NULL},
+#' in which case the table is placed according to the old method
+#' (using shift_x, shift_y, table_font_gap).
+#' @param ggdraw_x numeric. X-axis coordinate for ggdraw text. Default is 0.25.
+#' @param ggdraw_text_size numeric. Font size for ggdraw text. Default is 14.
 #' @return A \code{ggplot2} plot with the following elements:
 #' \itemize{
 #'   \item raw data plotted
@@ -45,15 +51,18 @@
 #' data( test_tbl )
 #' gg_ccc( test_tbl )
 #' @export
-gg_ccc = function( data, x, y,
-                   hor = 'left',
-                   ver = 'top',
-                   shift_x = 0,
-                   shift_y = 0,
-                   table_font_size = 5,
-                   table_font_gap = 2.5,
-                   fixed_coord = TRUE,
-                   equal_axes_length = TRUE ){
+gg_ccc = function(data, x, y,
+                  hor = 'left',
+                  ver = 'top',
+                  shift_x = 0,
+                  shift_y = 0,
+                  table_font_size = 5,
+                  table_font_gap = 2.5,
+                  fixed_coord = TRUE,
+                  equal_axes_length = TRUE,
+                  ggdraw_y_shift = NULL,
+                  ggdraw_x = 0.25,
+                  ggdraw_text_size = 14){
 
   # get inputs
   if( missing( x ) | missing( y ) ){
@@ -152,25 +161,60 @@ gg_ccc = function( data, x, y,
   } else{ stop( "ver must be one of 'top' or 'bot'.")}
 
   # sum stat points
+  if(is.null(ggdraw_y_shift)){
+    p <- ggplot( raw_data_tbl, aes( x = x, y = y ) ) +
+      geom_point() +
+      geom_smooth( method = "lm" ) +
+      geom_abline( intercept = 0, slope = 1 ) +
+      labs( x = lab_x, y = lab_y ) +
+      annotate( geom = 'text', x = summ_stat_x_vec,
+                y = summ_stat_y_vec, label = summ_stat_vec,
+                size = table_font_size )
 
-  p <- ggplot( raw_data_tbl, aes( x = x, y = y ) ) +
+    if( !fixed_coord ) return( p )
+    if( !equal_axes_length ) p + coord_fixed()
+
+    data_vec <- c( raw_data_tbl$x, raw_data_tbl$y )
+    upper_lim = max( data_vec )
+    lower_lim = min( data_vec )
+    range <- upper_lim - lower_lim
+    ext_value <- 0.1 * range
+    lim_vec <- c( lower_lim - ext_value, upper_lim + ext_value )
+
+    p <- p +
+      coord_fixed(xlim = lim_vec, ylim = lim_vec, expand = FALSE)
+  }
+
+  p <- ggplot(raw_data_tbl,
+              aes(x = x, y = y)) +
     geom_point() +
-    geom_smooth( method = "lm" ) +
-    geom_abline( intercept = 0, slope = 1 ) +
-    labs( x = lab_x, y = lab_y ) +
-    annotate( geom = 'text', x = summ_stat_x_vec,
-              y = summ_stat_y_vec, label = summ_stat_vec,
-              size = table_font_size )
+    geom_smooth(method = "lm") +
+    geom_abline(intercept = 0, slope = 1) +
+    labs(x = lab_x, y = lab_y)
 
-  if( !fixed_coord ) return( p )
-  if( !equal_axes_length ) p + fixed_coord()
+  if(fixed_coord){
+    data_vec <- c(raw_data_tbl$x, raw_data_tbl$y)
+    upper_lim = max(data_vec)
+    lower_lim = min(data_vec)
+    range <- upper_lim - lower_lim
+    ext_value <- 0.1 * range
+    lim_vec <- c(lower_lim - ext_value, upper_lim + ext_value)
+    p <- p +
+      coord_fixed(xlim = lim_vec,
+                  ylim = lim_vec,
+                  expand = FALSE)
 
-  data_vec <- c( raw_data_tbl$x, raw_data_tbl$y )
-  upper_lim = max( data_vec )
-  lower_lim = min( data_vec )
-  range <- upper_lim - lower_lim
-  ext_value <- 0.1 * range
-  lim_vec <- c( lower_lim - ext_value, upper_lim + ext_value )
+  }
+  if(equal_axes_length & !fixed_coord) p <- p + coord_fixed()
 
-  p + coord_fixed( xlim = lim_vec, ylim = lim_vec, expand = FALSE )
+  summ_stat_y_vec <- seq(0.80, by = ggdraw_y_shift, length.out = 4) %>%
+    rev()
+
+  p <- ggdraw(p) +
+    draw_text(text = summ_stat_vec,
+              x = ggdraw_x,
+              y = summ_stat_y_vec,
+              size = ggdraw_text_size)
+
+  p
 }
