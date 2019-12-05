@@ -31,6 +31,9 @@
 #' (using shift_x, shift_y, table_font_gap).
 #' @param ggdraw_x numeric. X-axis coordinate for ggdraw text. Default is 0.25.
 #' @param ggdraw_text_size numeric. Font size for ggdraw text. Default is 14.
+#' @param add_label logical. If \code{TRUE}, then each point is labelled using ggrepel::geom_text_repel. Default
+#' is \code{FALSE}.
+#'
 #' @return A \code{ggplot2} plot with the following elements:
 #' \itemize{
 #'   \item raw data plotted
@@ -38,6 +41,8 @@
 #'   \item blue linear line of best fit (estimate + confidence bands)
 #'   \item table of relevant summary statistics.
 #' }
+#'
+#'
 #' @details
 #' The following summary statistics are
 #' printed on the plot:
@@ -62,7 +67,10 @@ gg_ccc = function(data, x, y,
                   equal_axes_length = TRUE,
                   ggdraw_y_shift = NULL,
                   ggdraw_x = 0.25,
-                  ggdraw_text_size = 14){
+                  ggdraw_text_size = 14,
+                  add_label = FALSE,
+                  label_size = 2.5,
+                  axis_lab_vec = NULL){
 
   # get inputs
   if( missing( x ) | missing( y ) ){
@@ -112,6 +120,8 @@ gg_ccc = function(data, x, y,
   ccc_vec = specify_decimal( cccUst_obj )
 
   raw_data_tbl <- data.frame( x = x, y = y )
+
+  if(add_label) raw_data_tbl %<>% mutate(label = data$label)
 
   mod1 <- lm( y ~ x )
   est_vec <- coef( mod1 )
@@ -183,6 +193,7 @@ gg_ccc = function(data, x, y,
 
     p <- p +
       coord_fixed(xlim = lim_vec, ylim = lim_vec, expand = FALSE)
+
   }
 
   p <- ggplot(raw_data_tbl,
@@ -209,6 +220,11 @@ gg_ccc = function(data, x, y,
 
   summ_stat_y_vec <- seq(0.80, by = ggdraw_y_shift, length.out = 4) %>%
     rev()
+
+  if(add_label) p <- p + ggrepel::geom_text_repel(aes(x = x, y = y, label = label),
+                                                  size = label_size)
+
+  if(!is.null(axis_lab_vec)) p <- p + labs(x = axis_lab_vec[1], y = axis_lab_vec[2])
 
   p <- ggdraw(p) +
     draw_text(text = summ_stat_vec,
