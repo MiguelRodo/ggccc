@@ -19,4 +19,4 @@ VignetteBuilder: knitr
 Imports: 
     ggplot2,
     cccrm
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.1

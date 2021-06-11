@@ -33,6 +33,7 @@
 #' @param ggdraw_text_size numeric. Font size for ggdraw text. Default is 14.
 #' @param add_label logical. If \code{TRUE}, then each point is labelled using ggrepel::geom_text_repel. Default
 #' is \code{FALSE}.
+#' @param title character. Title to give plot. Default is \code{NULL}.
 #'
 #' @return A \code{ggplot2} plot with the following elements:
 #' \itemize{
@@ -70,7 +71,8 @@ gg_ccc = function(data, x, y,
                   ggdraw_text_size = 14,
                   add_label = FALSE,
                   label_size = 2.5,
-                  axis_lab_vec = NULL){
+                  axis_lab_vec = NULL,
+                  title = NULL){
 
   # get inputs
   if( missing( x ) | missing( y ) ){
@@ -225,6 +227,8 @@ gg_ccc = function(data, x, y,
                                                   size = label_size)
 
   if(!is.null(axis_lab_vec)) p <- p + labs(x = axis_lab_vec[1], y = axis_lab_vec[2])
+
+  if(!is.null(title)) p <- p + labs(title = title)
 
   p <- ggdraw(p) +
     draw_text(text = summ_stat_vec,

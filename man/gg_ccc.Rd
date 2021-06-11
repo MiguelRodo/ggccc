@@ -4,9 +4,26 @@
 \alias{gg_ccc}
 \title{Plot of raw data with line of best fit and CCC}
 \usage{
-gg_ccc(data, x, y, hor = "left", ver = "top", shift_x = 0,
-  shift_y = 0, table_font_size = 5, table_font_gap = 2.5,
-  fixed_coord = TRUE, equal_axes_length = TRUE)
+gg_ccc(
+  data,
+  x,
+  y,
+  hor = "left",
+  ver = "top",
+  shift_x = 0,
+  shift_y = 0,
+  table_font_size = 5,
+  table_font_gap = 2.5,
+  fixed_coord = TRUE,
+  equal_axes_length = TRUE,
+  ggdraw_y_shift = NULL,
+  ggdraw_x = 0.25,
+  ggdraw_text_size = 14,
+  add_label = FALSE,
+  label_size = 2.5,
+  axis_lab_vec = NULL,
+  title = NULL
+)
 }
 \arguments{
 \item{data}{dataframe.}
@@ -43,6 +60,20 @@ Default is \code{TRUE}.}
 \item{equal_axes_length}{logical. If \code{TRUE}, then x- and y-axes have the same
 range. The range is set so that there all data points are displayed (with a slight buffer
 around the upper and lower endpoints). Default is \code{TRUE}.}
+
+\item{ggdraw_y_shift}{numeric. Provides the increase in the y-coordinate from
+one table entry to the next. A reasonable value is 0.03. Default is \code{NULL},
+in which case the table is placed according to the old method
+(using shift_x, shift_y, table_font_gap).}
+
+\item{ggdraw_x}{numeric. X-axis coordinate for ggdraw text. Default is 0.25.}
+
+\item{ggdraw_text_size}{numeric. Font size for ggdraw text. Default is 14.}
+
+\item{add_label}{logical. If \code{TRUE}, then each point is labelled using ggrepel::geom_text_repel. Default
+is \code{FALSE}.}
+
+\item{title}{character. Title to give plot. Default is \code{NULL}.}
 }
 \value{
 A \code{ggplot2} plot with the following elements:
