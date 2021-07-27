@@ -4,7 +4,7 @@
 \alias{ggcorr}
 \title{Plot scatterplot with CCC and ab-line overlaid}
 \usage{
-ggcorr(data, title, trans = NULL)
+ggcorr(data, title, trans = NULL, lab = NULL)
 }
 \arguments{
 \item{data}{dataframe. Has columns group and y, which
@@ -12,6 +12,12 @@ specify the grouping variable and response variable, respectively.}
 
 \item{trans}{'sqrt' or 'log'. Transformation to be applied before
 both calculating CCC and displaying data.}
+
+\item{character.}{Name of column in \code{data}
+that contains labels for points.
+Uses \code{ggrepel::geom_text_repel}.
+If \code{NULL}, then no labels are plotted.
+Default is \code{NULL}.}
 }
 \description{
 Plot scatterplot with CCC and ab-line overlaid

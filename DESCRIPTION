@@ -18,5 +18,6 @@ Suggests:
 VignetteBuilder: knitr
 Imports: 
     ggplot2,
-    cccrm
+    cccrm,
+    magrittr
 RoxygenNote: 7.1.1

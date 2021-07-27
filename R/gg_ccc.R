@@ -123,7 +123,7 @@ gg_ccc = function(data, x, y,
 
   raw_data_tbl <- data.frame( x = x, y = y )
 
-  if(add_label) raw_data_tbl %<>% mutate(label = data$label)
+  if(add_label) raw_data_tbl <- raw_data_tbl %>% mutate(label = data$label)
 
   mod1 <- lm( y ~ x )
   est_vec <- coef( mod1 )
